@@ -1,3 +1,6 @@
+import copy
+
+
 class ShortestPath:
     def __init__(self, size, file_v_adds, file_e_adds):
         self.size = size
@@ -37,13 +40,18 @@ class ShortestPath:
             self.square_mat.append(int(val.split(",")[1]))
 
     def apsp(self) -> list:
-        pass
+        self.apsp_mat = copy.deepcopy(self.cost_mat)
+        for k in range(self.size):
+            for i in range(self.size):
+                for j in range(self.size):
+                    self.apsp_mat[i][j] = min(self.apsp_mat[i][k] + self.apsp_mat[k][j], self.apsp_mat[i][j])
 
     def a_star(self) -> dict:
         pass
 
     def shortest_path_apsp(self, i, j) -> int:
-        pass
+        self.apsp()
+        return self.apsp_mat[i][j]
 
     def shortest_path_astar(self, i, j) -> int:
         pass
@@ -51,8 +59,11 @@ class ShortestPath:
 if __name__ == '__main__':
     print("hello world")
     test = ShortestPath(100,
-                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.1/v.txt",
-                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.1/e.txt")
+                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.2/v.txt",
+                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.2/e.txt")
 
     test.create_cost_mat()
     test.create_square_mat()
+
+    print(test.shortest_path_apsp(1, 1))
+
