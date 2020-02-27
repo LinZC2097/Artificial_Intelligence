@@ -84,7 +84,9 @@ class ShortestPath:
 
     def shortest_path_astar(self, start: int, end: int) -> int:
         path = []
+        previous = {}
         frontier_heap = []
+        previous[start] = start
         g_cost = [float('Inf') for _ in range(self.size)]
 
         heapq.heappush(frontier_heap, (0, start))
@@ -97,16 +99,20 @@ class ShortestPath:
             for successor in self.adjacency_list[next_vertex[1]]:
                 if g_cost[successor] > g_cost[next_vertex[1]] + self.adjacency_list[next_vertex[1]][successor]:
                     g_cost[successor] = g_cost[next_vertex[1]] + self.adjacency_list[next_vertex[1]][successor]
+                    previous[successor] = next_vertex[1]
                     heapq.heappush(frontier_heap,
                                    (g_cost[successor] + self.astar_hcost_function(successor, end), successor))
             next_vertex = heapq.heappop(frontier_heap)
 
-        #
-        # for i in range(len(path) - 2):
-        #     print(path[i], end=" -> ")
-        #     if ((i + 1) % 10 == 0):
-        #         print()
-        # print(path[len(path) - 1])
+        next = end
+        while next != start:
+            path.append(next)
+            next = previous[next]
+        path.append(start)
+        for i in range(len(path) - 1, 1, -1):
+            print(path[i], end=" -> ")
+        print(path[1])
+
 
         return g_cost[next_vertex[1]]
 
@@ -139,9 +145,9 @@ class ShortestPath:
             next = previous[next]
         path.append(start)
 
-        for i in range(len(path) - 1, -1, -1):
+        for i in range(len(path) - 1, 0, -1):
             print(path[i], end=" -> ")
-        print()
+        print(path[0])
         return distance[end]
 
 
@@ -162,9 +168,9 @@ def main():
     # start_time = time()
     # print(test.shortest_path_apsp(1, 2))
     # print("apsp: ", time() - start_time)
-
-    print(test.shortest_path_astar(0, 2))
-    print(test.shortest_path_dijkstra(0, 2))
+    for i in range(10):
+        print(test.shortest_path_astar(5, i))
+        print(test.shortest_path_dijkstra(5, i))
     # start_time = time()
     # for start in range(100):
     #     for end in range(100):
