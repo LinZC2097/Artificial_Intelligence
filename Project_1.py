@@ -1,20 +1,23 @@
 import copy
+import csv
 import heapq
 from math import sqrt, fabs
 from time import time
 
 
 class ShortestPath:
-    def __init__(self, size: int, file_v_adds: str, file_e_adds: str):
-        self.size = size
+    def __init__(self, file_v_adds: str, file_e_adds: str):
+        # self.size = size
         self.file_v_adds = file_v_adds
         self.file_e_adds = file_e_adds
-        self.cost_mat = [[float('Inf') for j in range(size)] for i in range(size)]
+        # self.cost_mat = [[float('Inf') for j in range(size)] for i in range(size)]
+        self.cost_mat = []
         self.square_mat = []
         self.apsp_mat = []
-        self.adjacency_list = [{} for _ in range(size)]
-        self.create_cost_mat()
+        # self.adjacency_list = [{} for _ in range(size)]
+        self.adjacency_list = []
         self.create_square_mat()
+        self.create_cost_mat()
         self.create_adjacency_list()
 
     def read_file(self, adds: str) -> list:
@@ -32,6 +35,7 @@ class ShortestPath:
 
     def create_cost_mat(self):
         reader = self.read_file(self.file_e_adds)
+        self.cost_mat = [[float('Inf') for j in range(self.size)] for i in range(self.size)]
         assert not reader[0].startswith("#")
         for val in reader:
             vertex = []
@@ -44,10 +48,12 @@ class ShortestPath:
 
     def create_square_mat(self):
         reader = self.read_file(self.file_v_adds)
+        self.size = len(reader)
         for val in reader:
             self.square_mat.append(int(val.split(",")[1]))
 
     def create_adjacency_list(self):
+        self.adjacency_list = [{} for _ in range(self.size)]
         reader = self.read_file(self.file_e_adds)
         for val in reader:
             vertex = []
@@ -82,18 +88,21 @@ class ShortestPath:
             result = "%.2f" % sqrt((height * 10) ** 2 + (width * 10) ** 2)
             return float(result)
 
-    def shortest_path_astar(self, start: int, end: int) -> int:
+    def shortest_path_astar(self, start: int, end: int):
+        start_time = time()
         path = []
-        previous = {}
         frontier_heap = []
+        step = 0
+
+        previous = {}
         previous[start] = start
+
         g_cost = [float('Inf') for _ in range(self.size)]
 
         heapq.heappush(frontier_heap, (0, start))
         g_cost[start] = 0
 
         next_vertex = heapq.heappop(frontier_heap)
-        path.append(next_vertex[1])
 
         while next_vertex[1] != end:
             for successor in self.adjacency_list[next_vertex[1]]:
@@ -103,28 +112,35 @@ class ShortestPath:
                     heapq.heappush(frontier_heap,
                                    (g_cost[successor] + self.astar_hcost_function(successor, end), successor))
             next_vertex = heapq.heappop(frontier_heap)
+            step += 1
 
         next = end
         while next != start:
             path.append(next)
             next = previous[next]
         path.append(start)
-        for i in range(len(path) - 1, 1, -1):
-            print(path[i], end=" -> ")
-        print(path[1])
 
+        result = [path, step, start_time, g_cost[next_vertex[1]]]
+        self.show_result(start, end, result)
 
-        return g_cost[next_vertex[1]]
+        return result
 
     def shortest_path_dijkstra(self, start: int, end: int):
-        previous = {}
-        distance = [float("Inf") for i in range(self.size)]
-        previous[start] = start
-        distance[start] = 0
-        discovery = [0 for i in range(self.size)]
+        start_time = time()
         frontiers = []
-        next_vertex = start
+        step = 0
+
+        previous = {}
+        previous[start] = start
+
+        distance = [float("Inf") for i in range(self.size)]
+        distance[start] = 0
+
+        discovery = [0 for i in range(self.size)]
         discovery[start] = 1
+
+        next_vertex = start
+
         while next_vertex != end:
             for val in self.adjacency_list[next_vertex]:
                 if distance[val] > distance[next_vertex] + self.adjacency_list[next_vertex][val]:
@@ -138,6 +154,8 @@ class ShortestPath:
             next_vertex = heapq.heappop(heap)[1]
             frontiers.remove(next_vertex)
             discovery[next_vertex] = 1
+            step += 1
+
         path = []
         next = end
         while next != start:
@@ -145,37 +163,67 @@ class ShortestPath:
             next = previous[next]
         path.append(start)
 
-        for i in range(len(path) - 1, 0, -1):
-            print(path[i], end=" -> ")
-        print(path[0])
-        return distance[end]
+        result = [path, step, start_time, distance[end]]
+        self.show_result(start, end, result)
+
+        return result
+
+    def show_result(self, start: int, end: int, result: list):
+        print("path:")
+        for i in range(len(result[0]) - 1, 0, -1):
+            print(result[0][i], end=" -> ")
+        print(result[0][0])
+        # result[0] = path
+        print("number of step: ", result[1])
+        # result[1] = step
+        result[2] = round(time() - result[2], 6)
+        # result[2] = start_time
+        print("runtime of Dijkstra: %.6f" % result[2])
+        # result[3] = distance
+        print("distance from %d to %d: %d" % (start, end, result[3]))
+
+    def run(self, start, end):
+        print("A* Search:")
+        self.shortest_path_astar(start, end)
+        print("\nDijstra Search:")
+        self.shortest_path_dijkstra(start, end)
 
 
 def main():
-    # /Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph200_0.2/v.txt
-    # v_address = input("input the vertex file path in your computer: ")
-    # print(v_address)
+    file = ["100_0.1", "100_0.2", "100_0.3", "100_0.4",
+            "200_0.1", "200_0.2", "200_0.3", "200_0.4",
+            "500_0.1", "500_0.2", "500_0.3", "500_0.4",
+            ]
+    for val in file:
+        test = ShortestPath(
+            "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph" + val + "/v.txt",
+            "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph" + val + "/e.txt")
 
-    # /Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph200_0.2/e.txt
-    # e_address = input("input the edge file path in your computer: ")
-    # print(e_address)
+        # test.run(1, 2)
 
-    # test = ShortestPath(500, v_address, e_address)
-    test = ShortestPath(100,
-                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.2/v.txt",
-                        "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph100_0.2/e.txt")
+        with open("/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/result/Project_1_1.csv",
+                  mode='a',
+                  encoding="UTF-8") as csvTestLabel:
+            writerTestLabel = csv.writer(csvTestLabel)
+            writerTestLabel.writerow(
+                ['number of vertices', 'A* RunTime', 'Average A* Runtime', 'Dijkstra RunTime',
+                 'Average Dijkstra Runtime'])
 
-    # start_time = time()
-    # print(test.shortest_path_apsp(1, 2))
-    # print("apsp: ", time() - start_time)
-    for i in range(10):
-        print(test.shortest_path_astar(5, i))
-        print(test.shortest_path_dijkstra(5, i))
-    # start_time = time()
-    # for start in range(100):
-    #     for end in range(100):
-    #         test.shortest_path_astar(start, end)
-    # print("astar: ", time() - start_time)
+            runtime_astar = time()
+            print("size: ", test.size)
+            for i in range(test.size):
+                test.shortest_path_astar(5, i)
+            runtime_astar = round(time() - runtime_astar, 4)
+            print("Total runtime of A*: ", runtime_astar)
+            print("------------------------------------")
+            runtime_dijkstra = time()
+            for i in range(test.size):
+                test.shortest_path_dijkstra(5, i)
+            runtime_dijkstra = round(time() - runtime_dijkstra, 4)
+            print("Total runtime of Dijkstra*: ", runtime_dijkstra)
+
+            writerTestLabel.writerow(
+                [test.size, runtime_astar, runtime_astar / test.size, runtime_dijkstra, runtime_dijkstra / test.size])
 
 
 if __name__ == '__main__':
