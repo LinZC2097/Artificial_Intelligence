@@ -4,6 +4,8 @@ import heapq
 from math import sqrt, fabs
 from time import time
 
+from Project_1_Search.Priority_Queue import PQ
+
 
 class ShortestPath:
     def __init__(self, file_v_adds: str, file_e_adds: str):
@@ -121,13 +123,12 @@ class ShortestPath:
         path.append(start)
 
         result = [path, step, start_time, g_cost[next_vertex[1]]]
-        self.show_result(start, end, result)
+        self.show_result(start, end, result, "A*")
 
         return result
 
     def shortest_path_dijkstra(self, start: int, end: int):
         start_time = time()
-        frontiers = []
         step = 0
 
         previous = {}
@@ -140,21 +141,32 @@ class ShortestPath:
         discovery[start] = 1
 
         next_vertex = start
+        pq = PQ()
 
         while next_vertex != end:
             for val in self.adjacency_list[next_vertex]:
                 if distance[val] > distance[next_vertex] + self.adjacency_list[next_vertex][val]:
                     distance[val] = distance[next_vertex] + self.adjacency_list[next_vertex][val]
                     previous[val] = next_vertex
-                if not discovery[val] and val not in frontiers:
-                    frontiers.append(val)
-            heap = []
-            for frontier in frontiers:
-                heapq.heappush(heap, (distance[frontier], frontier))
-            next_vertex = heapq.heappop(heap)[1]
-            frontiers.remove(next_vertex)
+                    pq.add_task(val, distance[val])
+            next_vertex = pq.pop_task()[0]
             discovery[next_vertex] = 1
             step += 1
+
+        # while next_vertex != end:
+        #     for val in self.adjacency_list[next_vertex]:
+        #         if distance[val] > distance[next_vertex] + self.adjacency_list[next_vertex][val]:
+        #             distance[val] = distance[next_vertex] + self.adjacency_list[next_vertex][val]
+        #             previous[val] = next_vertex
+        #         if not discovery[val] and val not in frontiers:
+        #             frontiers.append(val)
+        #     pq = []
+        #     for frontier in frontiers:
+        #         heapq.heappush(pq, (distance[frontier], frontier))
+        #     next_vertex = heapq.heappop(pq)[1]
+        #     frontiers.remove(next_vertex)
+        #     discovery[next_vertex] = 1
+        #     step += 1
 
         path = []
         next = end
@@ -164,11 +176,11 @@ class ShortestPath:
         path.append(start)
 
         result = [path, step, start_time, distance[end]]
-        self.show_result(start, end, result)
+        self.show_result(start, end, result, "Dijkstra")
 
         return result
 
-    def show_result(self, start: int, end: int, result: list):
+    def show_result(self, start: int, end: int, result: list, type: str):
         print("path:")
         for i in range(len(result[0]) - 1, 0, -1):
             print(result[0][i], end=" -> ")
@@ -178,7 +190,7 @@ class ShortestPath:
         # result[1] = step
         result[2] = round(time() - result[2], 6)
         # result[2] = start_time
-        print("runtime of Dijkstra: %.6f" % result[2])
+        print("runtime of %s: %.6f" % (type, result[2]))
         # result[3] = distance
         print("distance from %d to %d: %d" % (start, end, result[3]))
 
@@ -190,40 +202,15 @@ class ShortestPath:
 
 
 def main():
-    file = ["100_0.1", "100_0.2", "100_0.3", "100_0.4",
-            "200_0.1", "200_0.2", "200_0.3", "200_0.4",
-            "500_0.1", "500_0.2", "500_0.3", "500_0.4",
-            ]
-    for val in file:
-        test = ShortestPath(
-            "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph" + val + "/v.txt",
-            "/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/graphs/graph" + val + "/e.txt")
+    file = input("input the file index(format example: 100_0.1):")
+    start = int(input("input the index of start point:"))
+    end = int(input("input the index of end point:"))
+    test = ShortestPath(
+        "./graphs/graph" + file + "/v.txt",
+        "./graphs/graph" + file + "/e.txt")
 
-        # test.run(1, 2)
+    test.run(start, end)
 
-        with open("/Users/marsscho/Desktop/6511 Artificial Intelligence/Project/Project 1/result/Project_1_1.csv",
-                  mode='a',
-                  encoding="UTF-8") as csvTestLabel:
-            writerTestLabel = csv.writer(csvTestLabel)
-            writerTestLabel.writerow(
-                ['number of vertices', 'A* RunTime', 'Average A* Runtime', 'Dijkstra RunTime',
-                 'Average Dijkstra Runtime'])
-
-            runtime_astar = time()
-            print("size: ", test.size)
-            for i in range(test.size):
-                test.shortest_path_astar(5, i)
-            runtime_astar = round(time() - runtime_astar, 4)
-            print("Total runtime of A*: ", runtime_astar)
-            print("------------------------------------")
-            runtime_dijkstra = time()
-            for i in range(test.size):
-                test.shortest_path_dijkstra(5, i)
-            runtime_dijkstra = round(time() - runtime_dijkstra, 4)
-            print("Total runtime of Dijkstra*: ", runtime_dijkstra)
-
-            writerTestLabel.writerow(
-                [test.size, runtime_astar, runtime_astar / test.size, runtime_dijkstra, runtime_dijkstra / test.size])
 
 
 if __name__ == '__main__':
