@@ -26,54 +26,53 @@ class HMM:
                 prob += pre_state[i] * (1 - self.unchange_prob) / 2
         return prob
 
-    def forward(self, pre_state) -> list:
+    def forward(self, pre_state: list, obs_num: int) -> list:
         prob = [decimal.Decimal(0) for _ in range(3)]
         for i in range(3):
-        prob[i] = self.state_change_prob(pre_state, i)
+            prob[i] = self.state_change_prob(pre_state, i) * self.emission_prob[i][obs_num - 1]
         return prob
 
-    def max_state(self, state_pro: list, obs_num) -> int:
-        prob = copy.deepcopy(state_pro)
+    def max_state(self, state_pro: list) -> int:
 
-        for i in range(3):
-            prob[i] *= self.emission_prob[i][obs_num - 1]
-        max_value = prob[0]
+        max_value = state_pro[0]
         max_index = 0
         for i in range(1, 3):
-            if max_value < prob[i]:
-                max_value = prob[i]
+            if max_value < state_pro[i]:
+                max_value = state_pro[i]
                 max_index = i
         return max_index
 
     def cal_state(self) -> list:
         state = []
-        state_prob = [decimal.Decimal(1), decimal.Decimal(0), decimal.Decimal(0)]
-        for i in range(0, len(self.observation)):
-            state.append(self.max_state(state_prob, self.observation[i]) + 1)
-            state_prob = self.forward(state_prob)
-        index = self.max_state(state_prob, self.observation[99])
+        state_prob = [decimal.Decimal(1) * decimal.Decimal(0.7), decimal.Decimal(0), decimal.Decimal(0)]
+        state.append(self.max_state(state_prob) + 1)
+        for i in range(0, len(self.observation) - 1):
+            state_prob = self.forward(state_prob, self.observation[i + 1])
+            state.append(self.max_state(state_prob) + 1)
+        index = self.max_state(state_prob)
         print("pro:", state_prob[index])
         return state
 
 
 def main():
     print("hello world!")
-    observation = [1, 1, 2, 3, 3, 2, 3, 1, 2, 1, 3, 2, 1, 3, 2, 2, 1, 3, 3, 3, 2, 2, 3, 2, 3, 2, 3, 3, 1, 2, 3, 3, 3, 2,
-                   2, 1, 3, 1, 2, 3, 1, 3, 1, 3, 1, 3, 1, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2, 3, 2, 2, 3, 3, 3, 2, 1, 2, 3, 1,
-                   2, 1, 2, 3, 1, 3, 2, 1, 1, 2, 2, 2, 2, 3, 2, 3, 3, 3, 1, 3, 1, 3, 3, 1, 2, 1, 1, 3, 2, 1, 3, 3
-                   ]
+    observation = [1, 3, 2, 3, 2, 1, 2, 2, 1, 3, 1, 2, 3, 2, 1, 3, 1, 3, 2, 3, 2, 1, 3, 1, 2, 3, 1, 2, 3, 1, 3, 1, 3, 1,
+                   3, 2, 3, 1, 3, 1, 3, 2, 3, 1, 3, 1, 2, 1, 3, 2, 3, 2, 1, 2, 3, 2, 3, 1, 3, 1, 3, 1, 3, 2, 1, 2, 1, 3,
+                   2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 3, 2, 3, 1, 3, 1, 1, 2, 3, 2, 1, 2, 1, 2, 3, 1, 3, 1, 3, 1, 2, 3]
+
     emission_prob = [
-        [0.7, 0.15, 0.15],
-        [0.15, 0.7, 0.15],
-        [0.15, 0.15, 0.7]
+        [0.99, 0.005, 0.005],
+        [0.005, 0.99, 0.005],
+        [0.005, 0.005, 0.99]
     ]
-    change_prob = 0
-    correct_state = [1, 3, 1, 2, 1, 2, 3, 2, 3, 1, 2, 3, 1, 2, 1, 2, 1, 3, 2, 3, 1, 2, 3, 2, 1, 2, 1, 3, 1, 2, 3, 2, 1,
-                     3, 2, 3, 2, 1, 2, 3, 1, 2, 1, 2, 1, 3, 1, 3, 2, 1, 2, 3, 2, 1, 2, 3, 2, 3, 1, 2, 3, 1, 3, 2, 1, 2,
-                     3, 1, 2, 1, 2, 3, 1, 3, 1, 3, 2, 3, 2, 1, 2, 3, 2, 3, 1, 3, 2, 1, 2, 3, 1, 2, 1, 3, 2, 3, 2, 3, 1,
+    unchange_prob = 0
+    correct_state = [1, 3, 2, 3, 2, 1, 2, 3, 1, 3, 1, 2, 3, 2, 1, 3, 1, 3, 2, 3, 2, 1, 3, 1, 2, 3, 1, 2, 3, 1, 3, 1, 3,
+                     1, 3, 2, 3, 1, 3, 1, 3, 2, 3, 1, 3, 1, 2, 1, 3, 2, 3, 2, 1, 2, 1, 2, 3, 1, 3, 1, 3, 1, 3, 2, 1, 2,
+                     1, 3, 2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 3, 2, 3, 1, 3, 1, 3, 2, 3, 2, 1, 2, 1, 2, 3, 1, 3, 1, 3, 1, 2,
                      3]
-    hmm = HMM(observation, emission_prob, change_prob)
+    hmm = HMM(observation, emission_prob, unchange_prob)
     predict_state = hmm.cal_state()
+    print("observation:\n", observation)
     print("prediction:\n", predict_state)
     print("correct:\n", correct_state)
     num = 0
