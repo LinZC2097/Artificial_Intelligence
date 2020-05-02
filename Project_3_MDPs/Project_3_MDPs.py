@@ -3,7 +3,7 @@ from time import time
 
 
 class Node():
-    def __init__(self, val: int, state: int, action: int = 1):
+    def __init__(self, val: int, state: int, action: int = 0):
         self.val = val
         self.state = state
         # 1 is fixed
@@ -87,7 +87,8 @@ class Grid():
                     self.reward + self.gamma * grid[axis[(action + 1) % 4][1]][axis[(action + 1) % 4][0]].val)
             value += self.noise[3] * (
                     self.reward + self.gamma * grid[axis[action - 1][1]][axis[action - 1][0]].val)
-        return round(value, 4)
+        return round(value, 2)
+        # return value
 
     def update_max_value(self, x: int, y: int):
         max_action = 0
@@ -113,7 +114,7 @@ class Grid():
             self.grid = copy.deepcopy(self.new_grid)
 
         self.show()
-        print("iteration times: ", i)
+        print("the iteration times of value iteration: ", i)
 
     def update_action(self, x: int, y: int):
         max_action = 0
@@ -133,47 +134,38 @@ class Grid():
                 for x in range(self.width):
                     if not self.grid[y][x].state:
                         self.new_grid[y][x].val = self.get_value(x, y, self.grid[y][x].action, self.grid)
-            for y in range(self.width):
-                for x in range(self.width):
-                    if not self.new_grid[y][x].state:
-                        self.update_action(x, y)
             if self.is_equal_value():
-                break
+                for y in range(self.width):
+                    for x in range(self.width):
+                        if not self.new_grid[y][x].state:
+                            self.update_action(x, y)
+                if self.is_equal_policy():
+                    self.grid = copy.deepcopy(self.new_grid)
+                    break
             self.grid = copy.deepcopy(self.new_grid)
         self.show()
-        print("iteration times: ", i)
+        print("the iteration times of policy iteration: ", i)
 
 
 def main():
-    print("hello world")
     grid = [
-        [None, None, None, 1, None, None, None],
-        [None, None, None, -1, None, 1, None],
-        [- 1, None, None, -1, None, 4, None],
-        [None, 1, None, -1, None, 1, None],
-        [None, 100, None, -100, None, 3, None],
-        [None, 2, None, -1, None, 3, None],
-        [0, None, None, -1, None, 1, None]
-    ]
-    noise = [0.8, 0.1, 0.1, 0]
 
+    ]
+    noise = [0.8, 0.1, 0.1,0 ]
+    gamma = 1
     # policy iteration
     start_time = time()
-    testGrid = Grid(7, 0.9, noise, grid)
-    testGrid.update_max_value(2, 4)
-    print(testGrid.grid[4][2].val, testGrid.grid[4][2].action)
-
+    testGrid = Grid(len(grid), gamma, noise, grid)
     testGrid.show()
+    print("------------------")
     testGrid.policy_iteration()
     print("policy iteration runtime: %.4f s" % (time() - start_time))
 
+    print("------------------")
     # value iteration
     start_time = time()
-    testGrid = Grid(7, 0.9, noise, grid)
-    testGrid.update_max_value(2, 4)
-    print(testGrid.grid[4][2].val, testGrid.grid[4][2].action)
-
-    testGrid.show()
+    testGrid = Grid(len(grid), gamma, noise, grid)
+    # testGrid.show()
     testGrid.value_iteration()
     print("value iteration runtime: %.4f s" % (time() - start_time))
 

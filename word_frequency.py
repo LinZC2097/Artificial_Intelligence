@@ -54,10 +54,10 @@ def main():
     all_word = list(all_word.items())
     all_word.sort(key=lambda x: x[1], reverse=True)
     top_word = all_word[:top_num]
-    for i in range(len(top_word)):
-        word, count = top_word[i]
-        # print("{0: < 10}{1: > 5}".format(word, count))
-        print(word, "\t", count, "\t", chapter[i])
+    # for i in range(len(top_word)):
+    #     word, count = top_word[i]
+    #     # print("{0: < 10}{1: > 5}".format(word, count))
+    #     print(word, "\t", count, "\t", chapter[i])
 
     chapter_add = "/Users/marsscho/PycharmProjects/Artificial_Intelligence/hongloumeng/hongloumeng_chapter"
 
@@ -70,10 +70,10 @@ def main():
             if word in chapter_freq[j]:
                 chapter[i].append(j + 1)
 
+    print("name", "\t", "frequency", "\t", "chapter")
     for i in range(len(top_word)):
         word, count = top_word[i]
-        # print("{0: < 10}{1: > 5}".format(word, count))
-        print(word, "\t", count, "\t", chapter[i])
+        print(word, "\t", count, "\t\t", chapter[i])
 
 
 if __name__ == '__main__':

@@ -68,6 +68,9 @@ class HMM:
         print("pro:", state_prob[index])
         return state
 
+    def viterbi_print_prob(self, state_prob: list):
+        pass
+
     def viterbi(self) -> tuple:
         state_prob = [{}]
         path = {}
@@ -89,6 +92,7 @@ class HMM:
             path = newpath
 
         (prob, state) = max([(state_prob[99][i], i) for i in range(3)])
+
         return prob, path[state]
 
 def main():
